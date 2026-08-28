@@ -15,10 +15,10 @@ def test_decode_arrays():
     assert decode_reply(BytesIO(b"*2\r\n$5\r\nHello\r\n$5\r\nWorld\r\n")) == ["Hello", "World"]
 
 def test_decode_null_bulk_strings():
-    assert decode_reply(BytesIO(b"$-1\r\n")) == None
+    assert decode_reply(BytesIO(b"$-1\r\n")) is None
 
 def test_decode_null_arrays():
-    assert decode_reply(BytesIO(b"*-1\r\n")) == None
+    assert decode_reply(BytesIO(b"*-1\r\n")) is None
 
 def test_decode_simple_errors():
     with raises(RedisError):
