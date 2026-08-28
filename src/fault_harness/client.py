@@ -1,10 +1,46 @@
 from typing import BinaryIO
+import socket
 
 class RedisError(Exception):
     pass
 
 class ConnectionClosedError(Exception):
     pass
+
+class Client:
+    def __init__(self, host: str = "localhost", port: int = 6379, timeout: int = 5):
+        self.host = host
+        self.port = port
+        self.timeout = timeout
+        self._sock = None
+        self._file = None
+
+    def connect(self):
+        if self._sock is not None:
+            self.close()
+        self._sock = socket.create_connection((self.host, self.port), self.timeout)
+        self._file = self._sock.makefile('rb')
+        return self
+
+    def command(self, *args: str):
+        self._sock.sendall(encode_command(*args))
+        return decode_reply(self._file)
+
+    def close(self):
+        if self._file is not None:
+            self._file.close()
+            self._file = None
+        if self._sock is not None:
+            self._sock.close()
+            self._sock = None
+        
+
+    def __enter__(self):
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
 def encode_command(*args: str | int) -> bytes:
     n = len(args)
