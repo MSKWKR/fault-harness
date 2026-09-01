@@ -12,3 +12,10 @@ class RateLimiter:
     def _window_key(self, identity: str) -> str:
         t = int(self.clock() // self.window_seconds)
         return f"{self.prefix}:{identity}:{t}"
+
+    def allow(self, identity: str) -> bool:
+        key = self._window_key(identity)
+        count = self.client.command("INCR", key)
+        if count == 1:
+            self.client.command("EXPIRE", key, self.window_seconds)
+        return count <= self.limit
