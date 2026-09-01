@@ -1,15 +1,7 @@
 from pytest import raises
-from pytest import fixture
 from fault_harness.client import Client
 from fault_harness.client import RedisError
 
-@fixture
-def client():
-    c = Client().connect()
-    c.command("SELECT", 15)
-    c.command("FLUSHDB")
-    yield c
-    c.close()
 
 def test_client_ping_returns_pong(client):
     assert client.command("PING") == "PONG"
