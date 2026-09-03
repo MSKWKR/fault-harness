@@ -20,3 +20,11 @@ build-backend = "uv_build"
 dev = [
     "pytest>=9.1.1",
 ]
+
+[tool.pytest.ini_options]
+markers = [
+    "fault: Destructive tests that stop and restart Redis.",
+]
+
+testpaths = ["tests"]
+addopts = "--strict-markers"
