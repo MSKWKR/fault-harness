@@ -1,4 +1,5 @@
 from fault_harness.limiter import RateLimiter
+from fault_harness.client import Client
 
 def test_same_window_same_key():
     a = RateLimiter(client=None, window_seconds=60, clock=lambda: 70.0)
@@ -62,3 +63,8 @@ def test_allow_window_is_fixed(limiter, client):
     client.command("EXPIRE", key, 10)
     limiter.allow("bob")
     assert 0 < client.command("TTL", key) <= 10
+
+def test_allow_when_redis_down():
+    c = Client(port=6378)
+    r = RateLimiter(client=c)
+    assert r.allow("bob")
