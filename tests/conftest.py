@@ -13,8 +13,15 @@ class FakeClock:
         return self.t
 
 class RedisControl:
-    def kill(self):
+    def kill(self, timeout: float = 10.0):
         subprocess.run(['docker', 'kill', 'fh-redis'], capture_output=True, check=False)
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            p = subprocess.run(['docker', 'ps', '-q', '-f', 'name=fh-redis'], capture_output=True, text=True, check=True)
+            if not p.stdout:
+                return
+            time.sleep(0.05)
+        raise RuntimeError(f"Redis not ready after {timeout}s")
 
     def start(self, timeout: float = 10.0):
         subprocess.run(['docker', 'run', '-d', '--rm', '--name', 'fh-redis', '-p', '6379:6379', 'redis:7-alpine'], capture_output=True, check=True)
