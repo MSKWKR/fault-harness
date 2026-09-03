@@ -42,8 +42,7 @@ class RedisControl:
 
 @fixture
 def client(redis_control):
-    c = Client().connect()
-    c.command("SELECT", 15)
+    c = Client(db=15).connect()
     c.command("FLUSHDB")
     yield c
     c.close()

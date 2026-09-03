@@ -8,18 +8,21 @@ class ConnectionClosedError(Exception):
     pass
 
 class Client:
-    def __init__(self, host: str = "localhost", port: int = 6379, timeout: int = 5):
+    def __init__(self, host: str = "localhost", port: int = 6379, timeout: int = 5, db: int = 0):
         self.host = host
         self.port = port
         self.timeout = timeout
         self._sock = None
         self._file = None
+        self.db = db
 
     def connect(self):
         if self._sock is not None:
             self.close()
         self._sock = socket.create_connection((self.host, self.port), self.timeout)
         self._file = self._sock.makefile('rb')
+        if self.db:
+            self.command("SELECT", self.db)
         return self
 
     def command(self, *args: str):
