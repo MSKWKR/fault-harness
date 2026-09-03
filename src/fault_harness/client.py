@@ -23,8 +23,17 @@ class Client:
         return self
 
     def command(self, *args: str):
-        self._sock.sendall(encode_command(*args))
-        return decode_reply(self._file)
+        try:
+            if self._sock is None:
+                self.connect()
+            self._sock.sendall(encode_command(*args))
+            return decode_reply(self._file)
+        except ConnectionClosedError:
+            self.close()
+            raise
+        except OSError as e:
+            self.close()
+            raise ConnectionClosedError(str(e)) from e
 
     def close(self):
         if self._file is not None:
