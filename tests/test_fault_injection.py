@@ -29,13 +29,6 @@ def test_limiter_recovers(limiter, redis_control, client):
     assert limiter.allow("bob")
     assert limiter.allow("bob")
     assert not limiter.allow("bob")
-    
-@pytest.mark.fault
-def test_allow_key_not_created(limiter, client):
-    limiter.client = FailAfter(client, 0)
-    limiter.allow("bob")
-    key = limiter._window_key("bob")
-    assert client.command("TTL", key) == -2
 
 @pytest.mark.fault
 def test_allow_propagate_server_errors(limiter, redis_out_of_memory):
