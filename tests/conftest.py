@@ -57,3 +57,10 @@ def redis_control():
     ctl.ensure_running()
     yield ctl
     ctl.ensure_running()
+
+@fixture
+def redis_out_of_memory(client):
+    client.command("CONFIG", "SET", "maxmemory-policy", "noeviction")
+    client.command("CONFIG", "SET", "maxmemory", 1)
+    yield
+    client.command("CONFIG", "SET", "maxmemory", 0)

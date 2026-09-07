@@ -1,5 +1,6 @@
 import pytest
 from fault_harness.client import ConnectionClosedError
+from fault_harness.client import RedisError
 
 class FailAfter:
     def __init__(self, client, n):
@@ -30,8 +31,13 @@ def test_limiter_recovers(limiter, redis_control, client):
     assert not limiter.allow("bob")
     
 @pytest.mark.fault
-def test_fail_between_INCR_EXPIRE(limiter, client):
+def test_allow_key_not_created(limiter, client):
     limiter.client = FailAfter(client, 0)
     limiter.allow("bob")
     key = limiter._window_key("bob")
     assert client.command("TTL", key) == -2
+
+@pytest.mark.fault
+def test_allow_propagate_server_errors(limiter, redis_out_of_memory):
+    with pytest.raises(RedisError):
+        limiter.allow("bob")
