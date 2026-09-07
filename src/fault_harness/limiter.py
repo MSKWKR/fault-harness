@@ -3,6 +3,14 @@ from fault_harness.client import Client
 from fault_harness.client import ConnectionClosedError
 
 class RateLimiter:
+    _SCRIPT = """
+        local c = redis.call('INCR', KEYS[1])
+        if c == 1 then
+            redis.call('EXPIRE', KEYS[1], ARGV[1])
+        end
+        return c
+        """
+
     def __init__(self, client: Client, limit: int = 5, window_seconds: int = 60, clock=time.time, prefix: str = "rl"):
         self.client = client
         self.limit = limit
@@ -15,11 +23,8 @@ class RateLimiter:
         return f"{self.prefix}:{identity}:{t}"
 
     def allow(self, identity: str) -> bool:
-        key = self._window_key(identity)
         try:
-            count = self.client.command("INCR", key)
-            if count == 1:
-                self.client.command("EXPIRE", key, self.window_seconds)
+            count = self.client.command("EVAL", self._SCRIPT, 1, self._window_key(identity), self.window_seconds)
         except ConnectionClosedError:
             return True
         return count <= self.limit

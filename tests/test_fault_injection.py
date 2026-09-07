@@ -31,7 +31,7 @@ def test_limiter_recovers(limiter, redis_control, client):
     
 @pytest.mark.fault
 def test_fail_between_INCR_EXPIRE(limiter, client):
-    limiter.client = FailAfter(client, 1)
+    limiter.client = FailAfter(client, 0)
     limiter.allow("bob")
     key = limiter._window_key("bob")
     assert client.command("TTL", key) == -2
