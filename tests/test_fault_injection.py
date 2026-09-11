@@ -2,16 +2,6 @@ import pytest
 from fault_harness.client import ConnectionClosedError
 from fault_harness.client import RedisError
 
-class FailAfter:
-    def __init__(self, client, n):
-        self.client, self.n, self.calls = client, n, 0
-
-    def command(self, *args: str):
-        self.calls += 1
-        if self.calls > self.n:
-            raise ConnectionClosedError("Injected failure")
-        return self.client.command(*args)
-
 @pytest.mark.fault
 def test_limiter_when_redis_dies(limiter, redis_control):
     assert limiter.allow("bob")
