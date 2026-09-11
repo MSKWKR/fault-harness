@@ -80,9 +80,17 @@ def decode_reply(stream: BinaryIO) -> str | int | list | None:
             ch = int(d[1:-2])
             if ch == -1:
                 return None
-            s = str(stream.read(ch), encoding="utf-8")
-            stream.read(2)
-            return s
+            reply_bytes = stream.read(ch)
+            if len(reply_bytes) == ch:
+                s = str(reply_bytes, encoding="utf-8")
+            else:
+                raise ConnectionClosedError(f"Expected {ch} bytes, got {len(reply_bytes)} instead")
+            
+            terminator = stream.read(2)
+            if terminator == b"\r\n":
+                return s
+            else:
+                raise ConnectionClosedError(f"Expected \\r\\n, got {terminator!r}")
         
         case b":":
             return int(d[1:-2])
