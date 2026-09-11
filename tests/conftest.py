@@ -17,7 +17,7 @@ class RedisControl:
         subprocess.run(['docker', 'kill', 'fh-redis'], capture_output=True, check=False)
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
-            p = subprocess.run(['docker', 'ps', '-q', '-f', 'name=fh-redis'], capture_output=True, text=True, check=True)
+            p = subprocess.run(['docker', 'ps', '-aq', '-f', 'name=fh-redis'], capture_output=True, text=True, check=True)
             if not p.stdout:
                 return
             time.sleep(0.05)
