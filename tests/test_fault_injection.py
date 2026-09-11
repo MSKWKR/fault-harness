@@ -1,4 +1,5 @@
 import pytest
+import time
 from fault_harness.client import ConnectionClosedError
 from fault_harness.client import RedisError
 
@@ -24,3 +25,11 @@ def test_limiter_recovers(limiter, redis_control, client):
 def test_allow_propagate_server_errors(limiter, redis_out_of_memory):
     with pytest.raises(RedisError):
         limiter.allow("bob")
+
+@pytest.mark.fault
+def test_allow_fails_open_when_redis_hangs(limiter, redis_paused):
+    start = time.monotonic()
+    result = limiter.allow("bob")
+    elapsed = time.monotonic() - start
+    assert result is True
+    assert 1.0 <= elapsed < 1.5

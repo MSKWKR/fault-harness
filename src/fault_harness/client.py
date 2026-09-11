@@ -8,7 +8,7 @@ class ConnectionClosedError(Exception):
     pass
 
 class Client:
-    def __init__(self, host: str = "localhost", port: int = 6379, timeout: int = 5, db: int = 0):
+    def __init__(self, host: str = "localhost", port: int = 6379, timeout: int = 1, db: int = 0):
         self.host = host
         self.port = port
         self.timeout = timeout

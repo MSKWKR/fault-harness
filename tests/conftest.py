@@ -64,3 +64,16 @@ def redis_out_of_memory(client):
     client.command("CONFIG", "SET", "maxmemory", 1)
     yield
     client.command("CONFIG", "SET", "maxmemory", 0)
+
+@fixture
+def redis_paused(client):
+    client.command("CLIENT", "PAUSE", 2000)
+    yield
+    deadline = time.monotonic() + 10.0
+    while time.monotonic() < deadline:
+        try:
+            Client().command("PING")
+            return
+        except ConnectionClosedError:
+            pass
+    raise RuntimeError("Redis still unresponsive after CLIENT PAUSE")
