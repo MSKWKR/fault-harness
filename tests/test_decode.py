@@ -1,4 +1,5 @@
 from pytest import raises
+from pytest import mark
 from io import BytesIO
 from fault_harness.client import decode_reply, RedisError, ConnectionClosedError
 
@@ -55,6 +56,7 @@ def test_decode_cursor_advancement():
     assert decode_reply(stream) == "Hello"
     assert decode_reply(stream) == 42
 
-def test_decode_reject_malformed_reply():
+@mark.parametrize("raw", [b"$5\r\nhel", b"$5\r\nHello", b"$5\r\nHello\r"])
+def test_decode_reject_truncated_reply(raw):
     with raises(ConnectionClosedError):
-        decode_reply(BytesIO(b"$5\r\nhel"))
+        decode_reply(BytesIO(raw))
