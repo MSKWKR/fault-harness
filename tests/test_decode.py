@@ -54,3 +54,7 @@ def test_decode_cursor_advancement():
     stream = BytesIO(b"$5\r\nHello\r\n:42\r\n")
     assert decode_reply(stream) == "Hello"
     assert decode_reply(stream) == 42
+
+def test_decode_reject_malformed_reply():
+    with raises(ConnectionClosedError):
+        decode_reply(BytesIO(b"$5\r\nhel"))
