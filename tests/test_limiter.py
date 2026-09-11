@@ -1,3 +1,5 @@
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from fault_harness.limiter import RateLimiter
 from fault_harness.client import Client
 
@@ -68,3 +70,17 @@ def test_allow_when_redis_down():
     c = Client(port=6378)
     r = RateLimiter(client=c)
     assert r.allow("bob")
+
+def test_limiter_concurrency(client):
+    N = 50
+    barrier = threading.Barrier(N, timeout=5)
+    def worker():
+        with Client(db=15) as c:
+            barrier.wait()
+            return RateLimiter(client=c, limit=3, window_seconds=60, clock=lambda: 70.0).allow("bob")
+
+    with ThreadPoolExecutor(max_workers=N) as ex:
+        futures = [ex.submit(worker) for _ in range(N)]
+        results = [f.result() for f in futures]
+
+    assert sum(results) == 3
