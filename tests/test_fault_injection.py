@@ -33,5 +33,3 @@ def test_allow_fails_open_when_redis_hangs(limiter, redis_paused):
     elapsed = time.monotonic() - start
     assert result is True
     assert 1.0 <= elapsed < 1.5
-
-def test_induced_failure():
